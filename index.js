@@ -37,6 +37,12 @@ const cropImage = (image, width, height) => {
     return canvas;
 };
 
+// Fungsi untuk memilih satu template acak
+const getRandomTemplate = (templateFiles) => {
+    const randomIndex = Math.floor(Math.random() * templateFiles.length);
+    return templateFiles[randomIndex];
+};
+
 // Fungsi untuk menggabungkan satu gambar stock dengan satu template
 const mergeImages = async (stockImage, templateImage) => {
     // Buat kanvas berdasarkan ukuran template
@@ -52,7 +58,7 @@ const mergeImages = async (stockImage, templateImage) => {
     // Gambar template di atasnya
     ctx.drawImage(templateImage, 0, 0);
 
-    return canvas.toBuffer('image/png');
+    return canvas.toBuffer('image/jpeg');
 };
 
 // Fungsi untuk memproses semua gambar dalam batch
@@ -60,21 +66,27 @@ const processBatchImages = async () => {
     const stockFiles = fs.readdirSync(stockFolder).filter(file => isImage(path.join(stockFolder, file)));
     const templateFiles = fs.readdirSync(templateFolder).filter(file => file.endsWith('.png'));
 
+    if (templateFiles.length === 0) {
+        console.error('Tidak ada template yang ditemukan.');
+        return;
+    }
+
     for (const stockFile of stockFiles) {
         const stockPath = path.join(stockFolder, stockFile);
         const stockImage = await loadImage(stockPath);
-        
-        for (const templateFile of templateFiles) {
-            const templatePath = path.join(templateFolder, templateFile);
-            const templateImage = await loadImage(templatePath);
-            
-            const outputBuffer = await mergeImages(stockImage, templateImage);
-            const outputFileName = `crop_${path.parse(stockFile).name}_${path.parse(templateFile).name}.png`;
-            const outputPath = path.join(hasilFolder, outputFileName);
 
-            fs.writeFileSync(outputPath, outputBuffer);
-            console.log(`File berhasil digabung: ${outputFileName}`);
-        }
+        // Pilih template acak untuk gambar ini
+        const randomTemplateFile = getRandomTemplate(templateFiles);
+        const templatePath = path.join(templateFolder, randomTemplateFile);
+        const templateImage = await loadImage(templatePath);
+
+        // Gabungkan gambar
+        const outputBuffer = await mergeImages(stockImage, templateImage);
+        const outputFileName = `${path.parse(stockFile).name}_${path.parse(randomTemplateFile).name}.jpg`;
+        const outputPath = path.join(hasilFolder, outputFileName);
+
+        fs.writeFileSync(outputPath, outputBuffer);
+        console.log(`File berhasil digabung: ${outputFileName}`);
     }
 };
 
