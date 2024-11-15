@@ -1,0 +1,18 @@
+# dependency directory
+node_modules/
+
+# lock files
+package-lock.json
+
+# env file
+.env
+
+# vscode file
+.vscode
+
+hasil/*
+!hasil/IMG
+stock/*
+!stock/IMG
+template/*
+!template/IMG
